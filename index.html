@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Mercado Pro</title>
+    <title>Mercado Smart Pro</title>
     <style>
         :root {
             --ios-blue: #007AFF;
@@ -21,8 +21,8 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- Agregar Nuevo --- */
-        .add-new-container {
+        /* --- Buscador / Creador --- */
+        .search-dock {
             position: sticky;
             top: 0;
             background: rgba(242, 242, 247, 0.95);
@@ -35,14 +35,21 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        .add-input {
+        .search-input {
             flex: 1;
             padding: 12px;
             border: 1px solid #C6C6C8;
             border-radius: 10px;
             font-size: 16px;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.9);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            background-size: 18px;
+            padding-left: 35px;
         }
+        
+        .search-input:focus { outline: none; border-color: var(--ios-blue); background-color: #fff; }
 
         .add-btn {
             background: var(--ios-blue);
@@ -52,146 +59,78 @@
             width: 44px;
             font-weight: bold;
             font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             cursor: pointer;
         }
 
         /* --- Lista --- */
-        .list-container {
-            padding: 15px;
-        }
+        .list-container { padding: 15px; }
 
         .row {
             background: var(--card);
             margin-bottom: 12px;
             border-radius: 12px;
             padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: flex; align-items: center; gap: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             transition: all 0.2s ease;
         }
 
-        .row.active {
-            background: #F0FFF4;
-            border: 1px solid var(--ios-green);
-        }
+        .row.active { background: #F0FFF4; border: 1px solid var(--ios-green); }
 
-        /* Checkbox */
         .check-circle {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid #C6C6C8;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 28px; height: 28px;
+            border-radius: 50%; border: 2px solid #C6C6C8;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
         }
+        .row.active .check-circle { background: var(--ios-green); border-color: var(--ios-green); }
+        .row.active .check-circle::after { content: '✓'; color: white; font-weight: 800; font-size: 14px; }
 
-        .row.active .check-circle {
-            background: var(--ios-green);
-            border-color: var(--ios-green);
+        .prod-name { flex: 1; font-weight: 600; font-size: 1rem; color: #1c1c1e; }
+
+        /* Inputs Mini & Flash Animation */
+        .inputs-right { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+        .labels-mini { font-size: 0.65rem; color: var(--ios-gray); text-transform: uppercase; display: flex; gap: 48px; margin-right: 5px; }
+        
+        .input-mini { 
+            background: #F2F2F7; border: 1px solid transparent; 
+            border-radius: 8px; padding: 8px; text-align: center; 
+            font-size: 1rem; color: #333; 
+            transition: background-color 0.5s, border-color 0.5s; /* Suaviza la animación */
         }
         
-        .row.active .check-circle::after {
-            content: '✓'; color: white; font-weight: 800; font-size: 14px;
-        }
-
-        /* Datos */
-        .prod-name {
-            flex: 1;
-            font-weight: 600;
-            font-size: 1rem;
-            color: #1c1c1e;
-        }
-
-        .inputs-right {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            align-items: flex-end;
-        }
-
-        .labels-mini {
-            font-size: 0.65rem;
-            color: var(--ios-gray);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            gap: 48px;
-            margin-right: 5px;
-        }
-
-        .input-mini {
-            background: #F2F2F7;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            font-size: 1rem;
-            color: #333;
-            transition: border-color 0.3s, background-color 0.3s;
-        }
-        
-        /* Efecto de guardado */
+        /* CLASE PARA LA ANIMACIÓN VERDE */
         .saved-flash {
+            background-color: #d1fae5 !important;
             border-color: var(--ios-green) !important;
-            background-color: #e8fce8 !important;
         }
-        
+
         .inp-qty { width: 40px; font-weight: bold; }
         .inp-price { width: 85px; font-family: monospace; letter-spacing: -0.5px; text-align: right; }
 
+        .empty-msg { text-align: center; color: #8E8E93; margin-top: 40px; font-style: italic; }
+        .btn-del-item { background: none; border: none; color: #ff3b30; font-size: 1.2rem; padding: 0 0 0 10px; cursor: pointer; opacity: 0.3; }
+
         /* --- Barra Total --- */
         .total-bar {
-            position: fixed;
-            bottom: 25px; left: 15px; right: 15px;
-            background: rgba(28, 28, 30, 0.95);
-            backdrop-filter: blur(20px);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            z-index: 200;
+            position: fixed; bottom: 25px; left: 15px; right: 15px;
+            background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px);
+            color: white; padding: 15px 20px; border-radius: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 200;
         }
-
-        .total-info span { display: block; font-size: 0.75rem; color: #8E8E93; text-transform: uppercase; }
         .total-val { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
-        
-        .btn-clear {
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-clear:active { background: rgba(255,255,255,0.3); }
-
-        /* Botón borrar item */
-        .btn-del-item {
-            background: none; border: none; color: #ff3b30; font-size: 1.2rem;
-            padding: 0 0 0 10px; cursor: pointer; opacity: 0.3;
-        }
-        .btn-del-item:active { opacity: 1; }
+        .btn-clear { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
 
     </style>
 </head>
 <body>
 
-    <div class="add-new-container">
-        <input type="text" id="newProdName" class="add-input" placeholder="Agregar producto nuevo..." autocomplete="off">
+    <div class="search-dock">
+        <input type="text" id="searchInput" class="search-input" 
+               placeholder="Buscar o Crear..." autocomplete="off" 
+               oninput="renderList()">
         <button class="add-btn" onclick="addNew()">+</button>
     </div>
 
@@ -201,151 +140,161 @@
     <div class="total-bar">
         <button class="btn-clear" onclick="resetChecks()">Nueva Compra</button>
         <div class="total-info" style="text-align: right;">
-            <span>Total Estimado</span>
+            <span style="display:block; font-size: 0.75rem; color: #8E8E93; text-transform: uppercase;">Total Estimado</span>
             <div class="total-val" id="totalDisplay">$0</div>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN INICIAL ---
+        // --- DATA ---
         const DEFAULT_DB = [
             { id: 1, name: "Arroz", price: 2500, qty: 1 },
             { id: 2, name: "Aceite", price: 12000, qty: 1 },
             { id: 3, name: "Huevos AA", price: 18000, qty: 1 },
-            { id: 4, name: "Leche (Litro)", price: 4200, qty: 3 },
-            { id: 5, name: "Pan Tajado", price: 5500, qty: 1 },
+            { id: 4, name: "Leche", price: 4200, qty: 3 },
+            { id: 5, name: "Pan", price: 5500, qty: 1 },
             { id: 6, name: "Pollo", price: 14000, qty: 1 },
-            { id: 7, name: "Carne Molida", price: 12000, qty: 1 },
+            { id: 7, name: "Carne", price: 18000, qty: 1 },
             { id: 8, name: "Tomate", price: 4000, qty: 1 },
             { id: 9, name: "Cebolla", price: 2500, qty: 1 },
             { id: 10, name: "Papel Hig.", price: 22000, qty: 1 },
             { id: 11, name: "Jabón Loza", price: 8000, qty: 1 },
-            { id: 12, name: "Cerveza x6", price: 25000, qty: 1 }
+            { id: 12, name: "Cerveza", price: 25000, qty: 1 }
         ];
 
-        // --- 2. ESTADO ---
-        let products = JSON.parse(localStorage.getItem('myChecklist_vFinal')) || DEFAULT_DB;
+        let products = JSON.parse(localStorage.getItem('myChecklist_Smart')) || DEFAULT_DB;
         const listEl = document.getElementById('listRender');
         const totalEl = document.getElementById('totalDisplay');
+        const searchInput = document.getElementById('searchInput');
 
-        // --- 3. INICIO ---
-        render();
+        // --- INIT ---
+        renderList();
 
-        // --- 4. FUNCIONES ---
+        // --- CORE FUNCTIONS ---
 
-        function render() {
+        function renderList() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
             listEl.innerHTML = '';
-            let total = 0;
+            
+            // Calculamos total inicial
+            updateTotalOnly();
 
-            // Ordenamos: primero los items más nuevos (mayor ID) se van arriba si son nuevos
-            // Opcional: Podríamos ordenar alfabéticamente si prefieres.
-            // products.sort((a,b) => a.name.localeCompare(b.name));
+            const filteredProducts = products.filter(p => 
+                p.name.toLowerCase().includes(searchTerm)
+            );
 
-            products.forEach((prod, index) => {
-                const isActive = prod.active || false;
-                const subtotal = (prod.price || 0) * (prod.qty || 1);
-                
-                if (isActive) total += subtotal;
-
-                const row = document.createElement('div');
-                row.className = `row ${isActive ? 'active' : ''}`;
-                
-                row.innerHTML = `
-                    <div class="check-circle" onclick="toggleActive(${index})"></div>
-                    
-                    <div class="prod-name" onclick="toggleActive(${index})">
-                        ${prod.name}
-                    </div>
-
-                    <div class="inputs-right">
-                        <div class="labels-mini">
-                            <span>Cant.</span><span>Precio</span>
-                        </div>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <input type="number" id="qty-${index}" class="input-mini inp-qty" 
-                                value="${prod.qty}" 
-                                onchange="updateVal(${index}, 'qty', this.value, this)"
-                                onclick="this.select()" inputmode="decimal">
-                            
-                            <input type="number" id="price-${index}" class="input-mini inp-price" 
-                                value="${prod.price}" 
-                                onchange="updateVal(${index}, 'price', this.value, this)"
-                                onclick="this.select()" inputmode="decimal">
-                                
-                            <button class="btn-del-item" onclick="deleteItem(${index})">×</button>
-                        </div>
-                    </div>
-                `;
-                listEl.appendChild(row);
-            });
-
-            totalEl.textContent = '$' + total.toLocaleString('es-CO');
-            save();
+            if (filteredProducts.length === 0 && searchTerm !== "") {
+                listEl.innerHTML = `<div class="empty-msg">No existe "${searchInput.value}".<br>Toca el <strong>+</strong> para agregarlo.</div>`;
+            } else {
+                filteredProducts.forEach(prod => {
+                    // Encontrar índice real en el array principal
+                    const realIndex = products.findIndex(p => p.id === prod.id);
+                    createRow(prod, realIndex);
+                });
+            }
         }
 
-        function save() {
-            localStorage.setItem('myChecklist_vFinal', JSON.stringify(products));
+        function createRow(prod, index) {
+            const isActive = prod.active || false;
+            const row = document.createElement('div');
+            row.className = `row ${isActive ? 'active' : ''}`;
+            
+            // AQUÍ ESTÁ LA MAGIA: pasamos 'this' en el updateVal
+            row.innerHTML = `
+                <div class="check-circle" onclick="toggleActive(${index})"></div>
+                <div class="prod-name" onclick="toggleActive(${index})">${prod.name}</div>
+                <div class="inputs-right">
+                    <div class="labels-mini"><span>Cant.</span><span>Precio</span></div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="number" class="input-mini inp-qty" 
+                            value="${prod.qty}" 
+                            onchange="updateVal(${index}, 'qty', this.value, this)"
+                            onclick="this.select()" inputmode="decimal">
+                        
+                        <input type="number" class="input-mini inp-price" 
+                            value="${prod.price}" 
+                            onchange="updateVal(${index}, 'price', this.value, this)"
+                            onclick="this.select()" inputmode="decimal">
+                            
+                        <button class="btn-del-item" onclick="deleteItem(${index})">×</button>
+                    </div>
+                </div>
+            `;
+            listEl.appendChild(row);
+        }
+
+        // --- ACTIONS ---
+
+        function addNew() {
+            const name = searchInput.value.trim();
+            if (!name) return;
+
+            const exists = products.some(p => p.name.toLowerCase() === name.toLowerCase());
+            if (exists) { alert("¡Ya existe!"); return; }
+
+            products.unshift({
+                id: Date.now(),
+                name: name, price: 0, qty: 1, active: true
+            });
+
+            searchInput.value = '';
+            save();
+            renderList();
         }
 
         function toggleActive(index) {
             products[index].active = !products[index].active;
-            render();
+            document.activeElement.blur(); 
+            save();
+            renderList(); // Aquí sí redibujamos para cambiar el color de la fila entera
         }
 
+        // --- UPDATE CON FLASH VISUAL ---
         function updateVal(index, field, value, element) {
             const val = parseFloat(value);
             products[index][field] = isNaN(val) ? 0 : val;
             
-            // Guardamos
+            // 1. Guardar en memoria
             save();
-            
-            // Calculamos total SIN redibujar todo (para no perder foco ni el efecto visual)
-            recalculateTotalOnly();
 
-            // Efecto visual "Flash" verde para confirmar guardado
-            element.classList.add('saved-flash');
-            setTimeout(() => {
-                element.classList.remove('saved-flash');
-            }, 500);
+            // 2. Solo recalcular número (sin redibujar toda la lista)
+            updateTotalOnly();
+
+            // 3. Activar animación visual (Flash verde)
+            if (element) {
+                element.classList.add('saved-flash');
+                setTimeout(() => {
+                    element.classList.remove('saved-flash');
+                }, 600); // 0.6 segundos de parpadeo
+            }
         }
 
-        function recalculateTotalOnly() {
-            let total = 0;
-            products.forEach(p => {
-                if(p.active) total += (p.price * p.qty);
-            });
-            totalEl.textContent = '$' + total.toLocaleString('es-CO');
-        }
-
-        function addNew() {
-            const nameIn = document.getElementById('newProdName');
-            const name = nameIn.value.trim();
-            if (!name) return;
-
-            products.unshift({
-                id: Date.now(),
-                name: name,
-                price: 0,
-                qty: 1,
-                active: true 
-            });
-
-            nameIn.value = '';
-            render();
+        // Función ligera solo para sumar (no toca el DOM de la lista)
+        function updateTotalOnly() {
+            let globalTotal = 0;
+            products.forEach(p => { if(p.active) globalTotal += (p.price * p.qty); });
+            totalEl.textContent = '$' + globalTotal.toLocaleString('es-CO');
         }
 
         function deleteItem(index) {
-            if(confirm("¿Eliminar este producto de la lista permanentemente?")) {
+            if(confirm("¿Borrar permanentemente?")) {
                 products.splice(index, 1);
-                render();
+                save();
+                renderList();
             }
         }
 
         function resetChecks() {
             if(confirm("¿Iniciar nueva compra? Los precios se mantendrán, pero se desmarcarán los productos.")) {
                 products.forEach(p => p.active = false);
-                render();
+                searchInput.value = '';
+                save();
+                renderList();
             }
+        }
+
+        function save() {
+            localStorage.setItem('myChecklist_Smart', JSON.stringify(products));
         }
     </script>
 </body>
