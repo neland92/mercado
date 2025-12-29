@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Checklist Mercado</title>
+    <style>
+        :root {
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-gray: #8E8E93;
+            --bg: #F2F2F7;
+            --card: #FFFFFF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding-bottom: 120px; /* Espacio para barra inferior */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- Input para Nuevo Producto --- */
+        .add-new-container {
+            position: sticky;
+            top: 0;
+            background: rgba(242, 242, 247, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            z-index: 100;
+            border-bottom: 1px solid #C6C6C8;
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #C6C6C8;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .add-btn {
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 15px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        /* --- Lista de Productos --- */
+        .list-container {
+            padding: 15px;
+        }
+
+        .row {
+            background: var(--card);
+            margin-bottom: 10px;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: background 0.2s;
+        }
+
+        /* Estado Activo */
+        .row.active {
+            border: 1px solid var(--ios-green);
+            background: #F0FFF4;
+        }
+
+        /* Checkbox Circular */
+        .check-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #C6C6C8;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .row.active .check-circle {
+            background: var(--ios-green);
+            border-color: var(--ios-green);
+        }
+        .row.active .check-circle::after {
+            content: '✓'; color: white; font-weight: bold;
+        }
+
+        /* Nombre del Producto */
+        .prod-name {
+            flex: 1;
+            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+
+        /* Inputs Derecha (Cant y Precio) */
+        .inputs-right {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-end;
+        }
+
+        .input-mini {
+            background: #F2F2F7;
+            border: none;
+            border-radius: 6px;
+            padding: 5px;
+            text-align: right;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        
+        .inp-qty { width: 40px; text-align: center; font-weight: bold; }
+        .inp-price { width: 80px; letter-spacing: -0.5px; }
+
+        /* Etiquetas pequeñas para los inputs */
+        .labels-mini {
+            display: flex;
+            gap: 45px; /* Ajuste visual */
+            font-size: 0.6rem;
+            color: var(--ios-gray);
+            margin-bottom: -3px;
+            margin-right: 5px;
+        }
+
+        /* --- Barra Total --- */
+        .total-bar {
+            position: fixed;
+            bottom: 20px; left: 15px; right: 15px;
+            background: #1C1C1E;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            z-index: 200;
+        }
+
+        .total-val { font-size: 1.6rem; font-weight: 700; }
+        .btn-clear {
+            background: none; border: 1px solid #555;
+            color: #aaa; padding: 5px 10px;
+            border-radius: 6px; font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="add-new-container">
+        <input type="text" id="newProdName" class="add-input" placeholder="Nuevo producto..." autocomplete="off">
+        <button class="add-btn" onclick="addNew()">+</button>
+    </div>
+
+    <div class="list-container" id="listRender">
+        </div>
+
+    <div class="total-bar">
+        <button class="btn-clear" onclick="resetChecks()">Nueva Compra</button>
+        <div>
+            <div style="font-size:0.7rem; color:#aaa; text-align:right;">TOTAL (Marcados)</div>
+            <div class="total-val" id="totalDisplay">$0</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. BASE DE DATOS MAESTRA (JSON) ---
+        // Aquí define todos tus productos frecuentes.
+        // El precio puede ser el "esperado".
+        const DEFAULT_DB = [
+            { id: 1, name: "Arroz", price: 2500, qty: 1 },
+            { id: 2, name: "Aceite", price: 12000, qty: 1 },
+            { id: 3, name: "Huevos AA", price: 18000, qty: 1 },
+            { id: 4, name: "Leche (Litro)", price: 4200, qty: 3 },
+            { id: 5, name: "Pan Tajado", price: 5500, qty: 1 },
+            { id: 6, name: "Pechuga Pollo", price: 14000, qty: 1 },
+            { id: 7, name: "Carne Molida", price: 12000, qty: 1 },
+            { id: 8, name: "Tomate (kg)", price: 4000, qty: 1 },
+            { id: 9, name: "Cebolla (kg)", price: 2500, qty: 1 },
+            { id: 10, name: "Papel Hig.", price: 22000, qty: 1 },
+            { id: 11, name: "Jabón Loza", price: 8000, qty: 1 },
+            { id: 12, name: "Cerveza x6", price: 25000, qty: 1 },
+            { id: 13, name: "Gaseosa 1.5L", price: 5000, qty: 1 }
+        ];
+
+        // --- 2. ESTADO DE LA APLICACIÓN ---
+        // Cargamos lo guardado o usamos la base por defecto
+        let products = JSON.parse(localStorage.getItem('myChecklist_v1')) || DEFAULT_DB;
+
+        const listEl = document.getElementById('listRender');
+        const totalEl = document.getElementById('totalDisplay');
+
+        // --- 3. INICIO ---
+        render();
+
+        // --- 4. FUNCIONES ---
+
+        function render() {
+            listEl.innerHTML = '';
+            let total = 0;
+
+            // Ordenamos: Primero los activos (marcados), luego alfabéticamente
+            // Esto es útil para que lo que ya echaste al carro se agrupe o se quede visualmente claro.
+            // Si prefieres orden fijo, quita el .sort
+            // products.sort((a, b) => (a.active === b.active) ? 0 : a.active ? -1 : 1);
+
+            products.forEach((prod, index) => {
+                const isActive = prod.active || false;
+                const subtotal = (prod.price || 0) * (prod.qty || 1);
+                
+                if (isActive) total += subtotal;
+
+                const row = document.createElement('div');
+                row.className = `row ${isActive ? 'active' : ''}`;
+                
+                row.innerHTML = `
+                    <div class="check-circle" onclick="toggleActive(${index})"></div>
+                    
+                    <div class="prod-name" onclick="toggleActive(${index})">
+                        ${prod.name}
+                    </div>
+
+                    <div class="inputs-right">
+                        <div class="labels-mini">
+                            <span>Cant.</span><span>Precio</span>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <input type="number" class="input-mini inp-qty" 
+                                value="${prod.qty}" 
+                                onchange="updateVal(${index}, 'qty', this.value)"
+                                onclick="this.select()" inputmode="numeric">
+                            
+                            <input type="number" class="input-mini inp-price" 
+                                value="${prod.price}" 
+                                onchange="updateVal(${index}, 'price', this.value)"
+                                onclick="this.select()" inputmode="decimal">
+                        </div>
+                    </div>
+                `;
+                listEl.appendChild(row);
+            });
+
+            totalEl.textContent = '$' + total.toLocaleString('es-CO');
+            localStorage.setItem('myChecklist_v1', JSON.stringify(products));
+        }
+
+        function toggleActive(index) {
+            products[index].active = !products[index].active;
+            render();
+        }
+
+        function updateVal(index, field, value) {
+            const val = parseFloat(value);
+            products[index][field] = isNaN(val) ? 0 : val;
+            render(); // Recalcular total inmediatamente
+        }
+
+        function addNew() {
+            const nameIn = document.getElementById('newProdName');
+            const name = nameIn.value.trim();
+            if (!name) return;
+
+            // Agregamos al principio o final
+            products.unshift({
+                id: Date.now(),
+                name: name,
+                price: 0,
+                qty: 1,
+                active: true // Al crear uno nuevo, asumimos que lo vas a llevar
+            });
+
+            nameIn.value = '';
+            render();
+        }
+
+        function resetChecks() {
+            if(confirm("¿Iniciar nueva compra? Se desmarcarán todos los productos.")) {
+                products.forEach(p => p.active = false);
+                render();
+            }
+        }
+    </script>
+</body>
+</html>
